@@ -1,0 +1,323 @@
+# Default values for n8n.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# Global configuration
+global:
+  imageRegistry: ""
+  imagePullSecrets: []
+  storageClass: ""
+
+# n8n image configuration
+image:
+  registry: docker.n8n.io
+  repository: n8nio/n8n
+  tag: "latest"
+  pullPolicy: IfNotPresent
+  pullSecrets: []
+
+# Deployment configuration
+replicaCount: 1
+
+# Execution mode configuration
+# Supported modes: main, queue
+executionMode: main
+
+# Queue mode configuration (only used when executionMode is "queue")
+queue:
+  # Number of worker replicas
+  workerCount: 2
+  # Redis configuration for queue mode
+  redis:
+    # Use external Redis instance
+    external: false
+    # Redis connection details (when external: true)
+    host: ""
+    port: 6379
+    password: ""
+    username: ""
+    database: 0
+    # Deploy Redis as part of this chart (when external: false)
+    deploy: true
+    # Redis image configuration
+    image:
+      registry: docker.io
+      repository: redis
+      tag: "6.2.14-alpine"
+      pullPolicy: IfNotPresent
+    # Redis persistence
+    persistence:
+      enabled: true
+      storageClass: ""
+      size: 8Gi
+
+# Database configuration
+database:
+  type: sqlite  # sqlite, postgresdb, mysqldb, mariadb
+  
+  # SQLite configuration (default)
+  sqlite:
+    # SQLite database file will be stored in persistent volume
+    enableWAL: true
+  
+  # PostgreSQL configuration
+  postgresql:
+    # Use external PostgreSQL instance
+    external: false
+    # PostgreSQL connection details (when external: true)
+    host: ""
+    port: 5432
+    database: n8n
+    username: n8n
+    password: ""
+    schema: public
+    ssl: false
+    # Deploy PostgreSQL as part of this chart (when external: false)
+    deploy: false
+    # PostgreSQL image configuration (when deploy: true)
+    image:
+      registry: docker.io
+      repository: postgres
+      tag: "16.4"
+      pullPolicy: IfNotPresent
+    # PostgreSQL persistence (when deploy: true)
+    persistence:
+      enabled: true
+      storageClass: ""
+      size: 8Gi
+  
+  # MySQL configuration
+  mysql:
+    external: false
+    host: ""
+    port: 3306
+    database: n8n
+    username: n8n
+    password: ""
+    ssl: false
+  
+  # MariaDB configuration
+  mariadb:
+    external: false
+    host: ""
+    port: 3306
+    database: n8n
+    username: n8n
+    password: ""
+    ssl: false
+
+# n8n configuration
+n8n:
+  # Encryption key for credentials (will be auto-generated if not provided)
+  encryptionKey: ""
+  
+  # Basic configuration
+  host: "0.0.0.0"
+  port: 5678
+  protocol: http
+  
+  # User data folder
+  userFolder: "/home/node/.n8n"
+  
+  # Diagnostics
+  diagnosticsEnabled: false
+  
+  # Version notifications
+  versionNotificationsEnabled: true
+  versionNotificationsInfoUrl: ""
+  
+  # Security
+  security:
+    auditLogEnabled: false
+  
+  # Workflow settings
+  workflows:
+    callerPolicyDefaultOption: workflowsFromSameOwner
+    
+  # Execution settings
+  executions:
+    # Data retention
+    dataMaxAge: 336  # hours (14 days)
+    dataPruneMaxCount: 10000
+    # Timeouts
+    timeout: 3600  # seconds
+    maxTimeout: 3600  # seconds
+    # Concurrency
+    concurrencyProduction: 10
+    concurrencyPreview: 10
+  
+  # External secrets (Enterprise feature)
+  externalSecrets:
+    enabled: false
+    updateInterval: 300  # seconds
+  
+  # Task runners
+  taskRunners:
+    enabled: true
+    mode: "internal"  # internal, external
+    # Python runner
+    python:
+      enabled: true
+    # JavaScript runner  
+    javascript:
+      enabled: true
+  
+  # Additional environment variables
+  extraEnv: []
+  #  - name: CUSTOM_VAR
+  #    value: "custom_value"
+  
+  # Environment variables from secrets
+  extraEnvFrom: []
+  #  - secretRef:
+  #      name: n8n-secrets
+
+# Service configuration
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 5678
+  annotations: {}
+  loadBalancerIP: ""
+  loadBalancerSourceRanges: []
+
+# Ingress configuration
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+    # cert-manager.io/cluster-issuer: letsencrypt-prod
+  hosts:
+    - host: n8n.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+  #  - secretName: n8n-tls
+  #    hosts:
+  #      - n8n.local
+
+# Persistence configuration
+persistence:
+  enabled: true
+  storageClass: ""
+  accessMode: ReadWriteOnce
+  size: 1Gi
+  annotations: {}
+  # existingClaim: ""
+
+# Resource configuration
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 500m
+  #   memory: 512Mi
+  # requests:
+  #   cpu: 250m
+  #   memory: 256Mi
+
+# Worker resources (for queue mode)
+workerResources: {}
+  # limits:
+  #   cpu: 500m
+  #   memory: 512Mi
+  # requests:
+  #   cpu: 250m
+  #   memory: 256Mi
+
+# Autoscaling configuration
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
+
+# Health checks
+healthcheck:
+  enabled: true
+  path: /healthz
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+  successThreshold: 1
+
+# Security context
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  fsGroup: 1000
+  fsGroupChangePolicy: OnRootMismatch
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  fsGroup: 1000
+
+# Node selection
+nodeSelector: {}
+
+# Tolerations
+tolerations: []
+
+# Affinity
+affinity: {}
+
+# Pod disruption budget
+podDisruptionBudget:
+  enabled: false
+  minAvailable: 1
+  # maxUnavailable: 1
+
+# Service account
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+# Pod annotations
+podAnnotations: {}
+
+# Pod labels
+podLabels: {}
+
+# Timezone configuration
+timezone: "UTC"
+
+# Init containers
+initContainers: []
+
+# Sidecar containers
+sidecars: []
+
+# Additional volumes
+extraVolumes: []
+
+# Additional volume mounts
+extraVolumeMounts: []
+
+# Metrics and monitoring
+metrics:
+  enabled: false
+  serviceMonitor:
+    enabled: false
+    interval: 30s
+    scrapeTimeout: 10s
+    labels: {}
+
+# Network policy
+networkPolicy:
+  enabled: false
+  policyTypes:
+    - Ingress
+    - Egress
+  egress: []
+  ingress: []

@@ -1,0 +1,49 @@
+# Basic n8n deployment with SQLite
+# This is the simplest configuration for getting started with n8n
+
+replicaCount: 1
+executionMode: main
+
+# Use SQLite database (default)
+database:
+  type: sqlite
+
+# Enable persistence for data storage
+persistence:
+  enabled: true
+  size: 2Gi
+
+# Basic resource limits
+resources:
+  requests:
+    cpu: 250m
+    memory: 512Mi
+  limits:
+    cpu: 500m
+    memory: 1Gi
+
+# Enable health checks
+healthcheck:
+  enabled: true
+
+# n8n configuration
+n8n:
+  # Set a custom encryption key (recommended for production)
+  # encryptionKey: "your-custom-32-character-key-here"
+  
+  # Enable task runners for code execution
+  taskRunners:
+    enabled: true
+    python:
+      enabled: true
+    javascript:
+      enabled: true
+
+# Service configuration
+service:
+  type: ClusterIP
+  port: 80
+
+# Disable ingress by default (can be enabled later)
+ingress:
+  enabled: false

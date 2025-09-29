@@ -1,0 +1,71 @@
+1. Get the application URL by running these commands:
+{{- if .Values.ingress.enabled }}
+{{- range $host := .Values.ingress.hosts }}
+  {{- range .paths }}
+  http{{ if $.Values.ingress.tls }}s{{ end }}://{{ $host.host }}{{ .path }}
+  {{- end }}
+{{- end }}
+{{- else if contains "NodePort" .Values.service.type }}
+  export NODE_PORT=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ include "n8n.fullname" . }})
+  export NODE_IP=$(kubectl get nodes --namespace {{ .Release.Namespace }} -o jsonpath="{.items[0].status.addresses[0].address}")
+  echo http://$NODE_IP:$NODE_PORT
+{{- else if contains "LoadBalancer" .Values.service.type }}
+     NOTE: It may take a few minutes for the LoadBalancer IP to be available.
+           You can watch the status of by running 'kubectl get --namespace {{ .Release.Namespace }} svc -w {{ include "n8n.fullname" . }}'
+  export SERVICE_IP=$(kubectl get svc --namespace {{ .Release.Namespace }} {{ include "n8n.fullname" . }} --template "{{"{{ range (index .status.loadBalancer.ingress 0) }}{{.}}{{ end }}"}}")
+  echo http://$SERVICE_IP:{{ .Values.service.port }}
+{{- else if contains "ClusterIP" .Values.service.type }}
+  export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "n8n.name" . }},app.kubernetes.io/instance={{ .Release.Name }}" -o jsonpath="{.items[0].metadata.name}")
+  export CONTAINER_PORT=$(kubectl get pod --namespace {{ .Release.Namespace }} $POD_NAME -o jsonpath="{.spec.containers[0].ports[0].containerPort}")
+  echo "Visit http://127.0.0.1:8080 to use your application"
+  kubectl --namespace {{ .Release.Namespace }} port-forward $POD_NAME 8080:$CONTAINER_PORT
+{{- end }}
+
+{{- if eq .Values.executionMode "queue" }}
+
+2. n8n is running in queue mode with {{ .Values.queue.workerCount }} worker(s).
+   {{- if .Values.queue.redis.deploy }}
+   Redis is deployed as part of this chart.
+   {{- else if .Values.queue.redis.external }}
+   Redis is configured to use external instance at {{ .Values.queue.redis.host }}:{{ .Values.queue.redis.port }}
+   {{- end }}
+{{- else }}
+
+2. n8n is running in main mode (single instance).
+{{- end }}
+
+{{- if eq .Values.database.type "sqlite" }}
+3. Database: Using SQLite (file-based database stored in persistent volume)
+{{- else if eq .Values.database.type "postgresdb" }}
+3. Database: Using PostgreSQL
+   {{- if .Values.database.postgresql.deploy }}
+   PostgreSQL is deployed as part of this chart.
+   {{- else if .Values.database.postgresql.external }}
+   PostgreSQL is configured to use external instance at {{ .Values.database.postgresql.host }}:{{ .Values.database.postgresql.port }}
+   {{- end }}
+{{- else if eq .Values.database.type "mysqldb" }}
+3. Database: Using MySQL at {{ .Values.database.mysql.host }}:{{ .Values.database.mysql.port }}
+{{- else if eq .Values.database.type "mariadb" }}
+3. Database: Using MariaDB at {{ .Values.database.mariadb.host }}:{{ .Values.database.mariadb.port }}
+{{- end }}
+
+{{- if .Values.persistence.enabled }}
+4. Persistent storage is enabled using {{ .Values.persistence.size }} volume.
+{{- else }}
+4. WARNING: Persistent storage is disabled. Data will be lost when pods restart!
+{{- end }}
+
+{{- if .Values.n8n.taskRunners.enabled }}
+5. Task runners are enabled ({{ .Values.n8n.taskRunners.mode }} mode)
+   {{- if .Values.n8n.taskRunners.python.enabled }}
+   - Python runner: enabled
+   {{- end }}
+   {{- if .Values.n8n.taskRunners.javascript.enabled }}  
+   - JavaScript runner: enabled
+   {{- end }}
+{{- end }}
+
+For more information about n8n configuration and usage, visit:
+- Documentation: https://docs.n8n.io
+- Community: https://community.n8n.io
+- GitHub: https://github.com/n8n-io/n8n

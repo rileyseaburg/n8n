@@ -1,0 +1,59 @@
+# n8n deployment with PostgreSQL database
+
+replicaCount: 1
+executionMode: main
+
+# PostgreSQL database configuration
+database:
+  type: postgresdb
+  postgresql:
+    deploy: true
+    external: false
+    database: n8n
+    username: n8n
+    password: "n8n-secure-password-123"
+    persistence:
+      enabled: true
+      size: 10Gi
+
+# Enable persistence for n8n data
+persistence:
+  enabled: true
+  size: 5Gi
+
+# Resource configuration
+resources:
+  requests:
+    cpu: 500m
+    memory: 1Gi
+  limits:
+    cpu: 1000m
+    memory: 2Gi
+
+# n8n configuration
+n8n:
+  encryptionKey: "myCustomEncryptionKey123456789012"
+  taskRunners:
+    enabled: true
+    python:
+      enabled: true
+    javascript:
+      enabled: true
+  executions:
+    timeout: 3600
+    concurrencyProduction: 20
+
+# Service configuration
+service:
+  type: ClusterIP
+  port: 80
+
+# Enable ingress
+ingress:
+  enabled: true
+  className: "nginx"
+  hosts:
+    - host: n8n.local
+      paths:
+        - path: /
+          pathType: Prefix
