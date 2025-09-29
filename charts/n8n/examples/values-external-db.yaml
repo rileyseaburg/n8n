@@ -1,0 +1,74 @@
+# n8n deployment with external database
+# Simple configuration for connecting to an external database server
+
+replicaCount: 1
+executionMode: main
+
+# External database configuration - just provide IP, database name, and password
+database:
+  type: postgresdb  # Change to mysqldb or mariadb as needed
+  postgresql:
+    external: true          # Use external database
+    deploy: false          # Don't deploy database in this chart
+    host: "192.168.1.100"  # Replace with your database server IP
+    port: 5432             # Default PostgreSQL port (3306 for MySQL/MariaDB)
+    database: "n8n"        # Your database name
+    username: "n8n"        # Your database username
+    password: "your-secure-password"  # Your database password
+    schema: "public"       # PostgreSQL schema (remove for MySQL/MariaDB)
+    ssl: false             # Enable if your database requires SSL
+
+# For MySQL/MariaDB instead of PostgreSQL, use:
+# database:
+#   type: mysqldb  # or mariadb
+#   mysql:  # or mariadb
+#     external: true
+#     host: "192.168.1.100"
+#     port: 3306
+#     database: "n8n"
+#     username: "n8n"
+#     password: "your-secure-password"
+#     ssl: false
+
+# Enable persistence for n8n workflow data (separate from database)
+persistence:
+  enabled: true
+  size: 2Gi
+
+# Basic resource configuration
+resources:
+  requests:
+    cpu: 250m
+    memory: 512Mi
+  limits:
+    cpu: 500m
+    memory: 1Gi
+
+# n8n configuration
+n8n:
+  # Set a secure encryption key (32 characters)
+  encryptionKey: "your-32-character-encryption-key"
+  
+  # Enable task runners
+  taskRunners:
+    enabled: true
+    python:
+      enabled: true
+    javascript:
+      enabled: true
+
+# Service configuration
+service:
+  type: ClusterIP
+  port: 80
+
+# Optional: Enable ingress for external access
+ingress:
+  enabled: false
+  # To enable ingress, set enabled: true and configure:
+  # className: "nginx"
+  # hosts:
+  #   - host: n8n.yourdomain.com
+  #     paths:
+  #       - path: /
+  #         pathType: Prefix

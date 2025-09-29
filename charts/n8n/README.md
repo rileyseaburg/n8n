@@ -173,7 +173,35 @@ The following table lists the configurable parameters of the n8n chart and their
 helm install my-n8n ./charts/n8n
 ```
 
-### Installation with PostgreSQL
+### External Database Connection (Simple)
+
+To connect to an external database server, you just need to provide the IP, database name, and password:
+
+```bash
+# PostgreSQL
+helm install my-n8n ./charts/n8n \
+  --set database.type=postgresdb \
+  --set database.postgresql.external=true \
+  --set database.postgresql.host="192.168.1.100" \
+  --set database.postgresql.database="n8n" \
+  --set database.postgresql.password="your-password"
+
+# MySQL
+helm install my-n8n ./charts/n8n \
+  --set database.type=mysqldb \
+  --set database.mysql.external=true \
+  --set database.mysql.host="192.168.1.100" \
+  --set database.mysql.database="n8n" \
+  --set database.mysql.password="your-password"
+```
+
+Or use the external database example file:
+
+```bash
+helm install my-n8n ./charts/n8n -f charts/n8n/examples/values-external-db.yaml
+```
+
+### Installation with Chart-Deployed PostgreSQL
 
 ```bash
 helm install my-n8n ./charts/n8n \

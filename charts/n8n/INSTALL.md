@@ -49,7 +49,37 @@ Then open http://localhost:8080 in your browser.
 
 ## Configuration Examples
 
-### Example 1: Development Setup
+### Example 1: External Database (Simple Setup)
+
+Connect to your existing database server with just the IP, database name, and password:
+
+```bash
+# PostgreSQL database
+helm install my-n8n ./charts/n8n \
+  --set database.type=postgresdb \
+  --set database.postgresql.external=true \
+  --set database.postgresql.host="192.168.1.100" \
+  --set database.postgresql.database="n8n" \
+  --set database.postgresql.username="n8n" \
+  --set database.postgresql.password="your-secure-password"
+
+# MySQL database
+helm install my-n8n ./charts/n8n \
+  --set database.type=mysqldb \
+  --set database.mysql.external=true \
+  --set database.mysql.host="192.168.1.100" \
+  --set database.mysql.database="n8n" \
+  --set database.mysql.username="n8n" \
+  --set database.mysql.password="your-secure-password"
+```
+
+Or use the external database example file:
+
+```bash
+helm install my-n8n ./charts/n8n -f charts/n8n/examples/values-external-db.yaml
+```
+
+### Example 2: Development Setup
 
 Perfect for development and testing:
 
@@ -59,9 +89,9 @@ helm install dev-n8n ./charts/n8n \
   --set persistence.size=5Gi
 ```
 
-### Example 2: PostgreSQL Setup
+### Example 3: Chart-Deployed PostgreSQL
 
-For better performance and scalability:
+For better performance with built-in database:
 
 ```bash
 helm install prod-n8n ./charts/n8n \
@@ -69,7 +99,7 @@ helm install prod-n8n ./charts/n8n \
   --set n8n.encryptionKey="your-secure-32-character-key-here"
 ```
 
-### Example 3: High-Availability Queue Mode
+### Example 4: High-Availability Queue Mode
 
 For high-throughput production environments:
 
@@ -80,7 +110,7 @@ helm install ha-n8n ./charts/n8n \
   --set n8n.encryptionKey="your-secure-32-character-key-here"
 ```
 
-### Example 4: With Ingress and TLS
+### Example 5: With Ingress and TLS
 
 ```bash
 helm install web-n8n ./charts/n8n \
