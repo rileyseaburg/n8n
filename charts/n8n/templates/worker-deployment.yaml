@@ -96,12 +96,8 @@ spec:
         {{- end }}
       volumes:
         - name: data
-          {{- if .Values.persistence.enabled }}
-          persistentVolumeClaim:
-            claimName: {{ .Values.persistence.existingClaim | default (include "n8n.fullname" .) }}
-          {{- else }}
+          # Workers don't need the main pod's persistent data, use emptyDir to avoid RWO volume conflicts
           emptyDir: {}
-          {{- end }}
         {{- with .Values.extraVolumes }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
