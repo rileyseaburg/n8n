@@ -13,4 +13,3 @@ spec:
       image: busybox
       command: ['wget']
       args: ['{{ include "n8n.fullname" . }}:{{ .Values.service.port }}{{ .Values.healthcheck.path }}']
-  restartPolicy: Never
